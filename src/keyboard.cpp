@@ -62,63 +62,6 @@ static const SpecialKeyMap SPECIAL_KEYS[] = {
     {"RGUI",   KEY_RIGHT_GUI,   true},
 };
 
-// ---------- 修饰键“锁定”状态 ----------
-
-struct ModifierState {
-    bool lctrl  = false;
-    bool rctrl  = false;
-    bool lalt   = false;
-    bool ralt   = false;
-    bool lshift = false;
-    bool rshift = false;
-    bool lgui   = false;
-    bool rgui   = false;
-};
-
-static ModifierState g_modState;
-
-static bool getModifierState(uint8_t code) {
-    switch (code) {
-        case KEY_LEFT_CTRL:   return g_modState.lctrl;
-        case KEY_RIGHT_CTRL:  return g_modState.rctrl;
-        case KEY_LEFT_ALT:    return g_modState.lalt;
-        case KEY_RIGHT_ALT:   return g_modState.ralt;
-        case KEY_LEFT_SHIFT:  return g_modState.lshift;
-        case KEY_RIGHT_SHIFT: return g_modState.rshift;
-        case KEY_LEFT_GUI:    return g_modState.lgui;
-        case KEY_RIGHT_GUI:   return g_modState.rgui;
-        default:              return false;
-    }
-}
-
-static void setModifierState(uint8_t code, bool pressed) {
-    switch (code) {
-        case KEY_LEFT_CTRL:   g_modState.lctrl  = pressed; break;
-        case KEY_RIGHT_CTRL:  g_modState.rctrl  = pressed; break;
-        case KEY_LEFT_ALT:    g_modState.lalt   = pressed; break;
-        case KEY_RIGHT_ALT:   g_modState.ralt   = pressed; break;
-        case KEY_LEFT_SHIFT:  g_modState.lshift = pressed; break;
-        case KEY_RIGHT_SHIFT: g_modState.rshift = pressed; break;
-        case KEY_LEFT_GUI:    g_modState.lgui   = pressed; break;
-        case KEY_RIGHT_GUI:   g_modState.rgui   = pressed; break;
-        default: break;
-    }
-}
-
-// “点一下修饰键” = 按下/松开切换
-static void toggleModifier(uint8_t code) {
-    bool pressed = getModifierState(code);
-    if (!pressed) {
-        // 之前未按下 -> 现在按下并保持
-        HidKeyboard.press(code);
-        setModifierState(code, true);
-    } else {
-        // 之前按下 -> 现在松开
-        HidKeyboard.release(code);
-        setModifierState(code, false);
-    }
-}
-
 // ---------- 工具函数 ----------
 
 // 单键（包括 F 区、方向键、ENTER、以及“单独按下的修饰键”）
@@ -129,8 +72,10 @@ static void sendSpecialKey(const String &keyName) {
     for (auto &item : SPECIAL_KEYS) {
         if (up.equals(item.name)) {
             if (item.isModifier) {
-                // 修饰键使用“锁定/切换”模式：点一下 = 按下并保持，再点一次 = 松开
-                toggleModifier(item.code);
+                // 修饰键改为点按：发送一次按下+松开
+                HidKeyboard.press(item.code);
+                vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
+                HidKeyboard.release(item.code);
             } else {
                 // 普通功能键 / 空格 / F 键等：一次性点击
                 HidKeyboard.write(item.code);
@@ -237,10 +182,6 @@ static void sendKeyCombo(const String &combo) {
 
     vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
     HidKeyboard.releaseAll();
-
-    // 注意：releaseAll() 只影响 HID 内部状态，不会改 g_modState，
-    // 所以如果你之前点过“锁定 Ctrl”，在这里会被 Host 松开，
-    // 但 g_modState 里仍标记为 true。下次再点一次 Ctrl 会发送 release()，状态就同步回来了。
 }
 
 // ---------- 初始化 & 入队 ----------
