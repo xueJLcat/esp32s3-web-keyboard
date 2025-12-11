@@ -75,7 +75,7 @@ static void sendSpecialKey(const String &keyName) {
                 // 修饰键改为点按：发送一次按下+松开
                 HidKeyboard.press(item.code);
                 vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
-                HidKeyboard.release(item.code);
+                HidKeyboard.releaseAll();
             } else {
                 // 普通功能键 / 空格 / F 键等：一次性点击
                 HidKeyboard.write(item.code);
