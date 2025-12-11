@@ -39,27 +39,26 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
         radial-gradient(circle at bottom, rgba(129,140,248,0.18), transparent 55%),
         var(--bg);
       color: var(--text);
-      padding: 24px;
+      padding: clamp(14px, 3vw, 28px);
     }
 
     .card {
-      width: 100%;
-      max-width: 780px;
+      width: min(960px, 100%);
       background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(15,23,42,0.86));
       border-radius: 26px;
-      padding: 22px 22px 18px;
+      padding: clamp(18px, 3vw, 24px);
       box-shadow: var(--shadow-soft);
       border: 1px solid rgba(148,163,184,0.25);
       backdrop-filter: blur(26px);
+      display: grid;
+      gap: 14px;
     }
 
     .card-header {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
       align-items: center;
-      margin-bottom: 14px;
       gap: 12px;
-      flex-wrap: wrap;
     }
 
     .title {
@@ -89,18 +88,16 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
     .ip {
       font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono";
       font-size: 11px;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 999px;
       background: rgba(15,23,42,0.9);
       border: 1px solid rgba(55,65,81,0.9);
       color: var(--muted);
-      white-space: nowrap;
+      justify-self: end;
+      width: fit-content;
     }
 
-    .textarea-wrapper {
-      position: relative;
-      margin-bottom: 12px;
-    }
+    .textarea-wrapper { position: relative; }
 
     textarea {
       width: 100%;
@@ -111,7 +108,7 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
                   rgba(15,23,42,0.96);
       border-radius: var(--radius-xl);
       border: 1px solid rgba(75,85,99,0.9);
-      padding: 12px 14px 28px;
+      padding: 12px 14px 32px;
       color: var(--text);
       font-size: 14px;
       line-height: 1.5;
@@ -176,8 +173,8 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
     }
 
     .kbd-grid {
-      margin-top: 12px;
-      padding: 10px 10px 8px;
+      margin-top: 8px;
+      padding: 12px;
       border-radius: var(--radius-lg);
       background: radial-gradient(circle at top right, rgba(56,189,248,0.18), transparent 52%),
                   rgba(15,23,42,0.98);
@@ -201,12 +198,12 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
 
     .key {
       min-width: 30px;
-      padding: 6px 0;
-      border-radius: 10px;
+      padding: 8px 0;
+      border-radius: 12px;
       background: radial-gradient(circle at top, rgba(31,41,55,0.8), rgba(15,23,42,1));
       border: 1px solid rgba(55,65,81,0.95);
       color: var(--text);
-      font-size: 11px;
+      font-size: 12px;
       text-align: center;
       box-shadow:
         0 2px 0 rgba(15,23,42,1),
@@ -291,9 +288,22 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
       box-shadow: 0 0 0 3px rgba(248,113,113,0.35);
     }
 
-    @media (max-width: 600px) {
-      .card { padding: 18px 14px 14px; max-width: 100%; }
-      textarea { min-height: 90px; }
+    @media (max-width: 900px) {
+      .card { border-radius: 22px; }
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 12px; }
+      .card { padding: 16px; }
+      .card-header { grid-template-columns: 1fr; }
+      .ip { justify-self: start; }
+      .kbd-grid { padding: 10px; }
+      .kbd-rows { min-width: unset; }
+      .kbd-row { flex-wrap: wrap; justify-content: center; }
+      .key { flex: 1 1 calc(25% - 6px); min-width: 68px; }
+      .key-wide, .key-xwide { flex: 1 1 calc(33% - 6px); }
+      .key-space { flex: 1 1 100%; min-width: 0; }
+      textarea { min-height: 110px; }
     }
   </style>
 </head>
