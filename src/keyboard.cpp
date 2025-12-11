@@ -65,7 +65,7 @@ static const SpecialKeyMap SPECIAL_KEYS[] = {
 // ---------- 工具函数 ----------
 
 // 单键（包括 F 区、方向键、ENTER、以及“单独按下的修饰键”）
-static void sendSpecialKey(const String &keyName) {
+static bool sendSpecialKey(const String &keyName) {
     String up = keyName;
     up.toUpperCase();
 
@@ -74,16 +74,20 @@ static void sendSpecialKey(const String &keyName) {
             if (item.isModifier) {
                 // 修饰键改为点按：发送一次按下+松开
                 HidKeyboard.press(item.code);
-                vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
+                vTaskDelay(pdMS_TO_TICKS(MOD_TAP_DELAY_MS));
                 HidKeyboard.release(item.code);
+                vTaskDelay(pdMS_TO_TICKS(MOD_TAP_DELAY_MS));
+                return true;
             } else {
                 // 普通功能键 / 空格 / F 键等：一次性点击
                 HidKeyboard.write(item.code);
+                vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
+                return false;
             }
-            return;
         }
     }
     Serial.printf("Unknown special key: %s\n", keyName.c_str());
+    return false;
 }
 
 // 组合键："LCTRL+C"、"LGUI+D" 之类
@@ -264,7 +268,6 @@ void keyboardTask(void *pvParameters) {
                 }
             } else if (ev->type == KeyEventType::SPECIAL) {
                 sendSpecialKey(ev->payload);
-                vTaskDelay(pdMS_TO_TICKS(KEYSTROKE_DELAY_MS));
             } else if (ev->type == KeyEventType::COMBO) {
                 sendKeyCombo(ev->payload);
                 // sendKeyCombo 内部已经 delay，并且 releaseAll
